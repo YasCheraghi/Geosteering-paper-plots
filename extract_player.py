@@ -278,5 +278,9 @@ for i in tvds_all:
     variance.append(var)
     
     
-# dgggh
+plt.scatter(variance,conv_score, marker='o', c='red', linewidths=0.5, edgecolors='black')
+plt.xlabel('Variance in well trajectory')
+plt.ylabel('Total Score')
+
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/var_vs_score.png', dpi=500)            
 
