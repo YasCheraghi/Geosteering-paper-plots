@@ -213,5 +213,70 @@ if __name__ == '__main__':
         #vss_all.append(vss)
         #tvds_all.append(tvds)
         
+    plt.xlabel('vss')
+    plt.ylabel('xtvds')
+    plt.title("Well Trajectories for all players")
+    plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_all_r1.png', dpi=500)
     
-    plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_Round1.png', dpi=500)
+    
+    
+    
+    
+# finding Interesting players
+
+
+player_num_list=[]
+
+for i in range(350):
+    
+    if i==48: continue
+    #if i==19: continue
+    #if i==20: continue
+    #if i==22: continue
+    #if i==233: continue
+
+    player_num_list.append(i+1)    
+
+
+cur_stage_id = id_stage_1
+
+vss_all=[]
+tvds_all=[]
+
+for player_number in player_num_list:
+    
+    player_round_6 = get_virtual_project_id(player_number, stage_id=cur_stage_id)
+    lateral_id = get_lateral(player_round_6.virtual_proj_id)
+    revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+    all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id, player_to_add=player_round_6)
+    revisions_interp = get_all_interpetation_versions(lateral_id)
+    all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id, player_to_add=player_round_6)
+    trajectories=player_round_6.trajectories
+    traj_index_list=list(trajectories.keys())
+    traj_index_endtime=traj_index_list[len(traj_index_list)-1]   
+    players_well = player_round_6.trajectories[traj_index_endtime]
+    
+    points=players_well.well_points
+    
+    vss = []
+    tvds = []
+    max_tvd=4000
+    for point in points: 
+        vss.append(point.vs)
+        tvds.append(point.tvd)
+
+    vss_all.append(vss)
+    tvds_all.append(tvds)
+    
+
+variance=[] 
+
+for i in tvds_all:
+    
+    var=np.var(i)
+    
+    variance.append(var)
+    
+    
+# dgggh
+
