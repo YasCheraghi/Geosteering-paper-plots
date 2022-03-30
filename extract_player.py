@@ -284,4 +284,53 @@ plt.ylabel('Total Score')
 
 plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/var_vs_score.png', dpi=500)            
 
-# test
+# Plotting wekk trajectories of top 10 players=
+
+top_players=[74, 141, 38, 61, 78, 301, 143, 207, 7, 42]
+top_scores=[80.7,82.8, 76.5, 83.9, 70.9, 73.6, 74.8, 79.4, 72.3, 70.5]
+
+for p in range(len(top_players)):
+    
+
+        
+    player_round_6 = get_virtual_project_id(top_players[p], stage_id=cur_stage_id)
+        #print('virtual project id', player_round_6.virtual_proj_id)
+    lateral_id = get_lateral(player_round_6.virtual_proj_id)
+        #print('lateral object', lateral_id)
+    revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+        #print('lateral revisions', revisions_lateral)
+    all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id, player_to_add=player_round_6)
+        # done with laterals
+
+    revisions_interp = get_all_interpetation_versions(lateral_id)
+        #print('interpretation revisions', revisions_interp)
+    all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id, player_to_add=player_round_6)
+        
+    trajectories=player_round_6.trajectories
+    traj_index_list=list(trajectories.keys())
+    traj_index_endtime=traj_index_list[len(traj_index_list)-1]
+        
+        #plotting_utility.plot_well(player_round_6, traj_index_endtime, True)
+        
+    players_well = player_round_6.trajectories[traj_index_endtime]
+        
+    points=players_well.well_points
+        
+    vss = []
+    tvds = []
+    max_tvd=3750
+    for point in points: 
+        vss.append(point.vs)
+        tvds.append(point.tvd)
+    plt.plot(vss, tvds) 
+    plt.ylim(max_tvd, 3550)
+    plt.xlabel('vss')
+    plt.ylabel('xtvds')
+    plt.title("Well Trajectories for top  players, conventional round")
+    plt.legend(['player number:74, score=80.7', 'player number:141, score=82.8','player number:38, score=76.5','player number:61, score=83.9','player number:78, score=70.9', 'player number:301, score=73.6', 'player number:143, score=74.8','player number:207, score=79.4','player number:7, score=72.3', 'player number:42, score=70.5',])
+    
+    
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_top_r1.png', dpi=500)
+    
+    
+# 
