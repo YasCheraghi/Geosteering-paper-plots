@@ -208,7 +208,7 @@ if __name__ == '__main__':
             vss.append(point.vs)
             tvds.append(point.tvd)
         plt.plot(vss, tvds) 
-        plt.ylim(max_tvd, 3000)
+        plt.ylim(max_tvd, 3500)
         
         #vss_all.append(vss)
         #tvds_all.append(tvds)
@@ -284,3 +284,4 @@ plt.ylabel('Total Score')
 
 plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/var_vs_score.png', dpi=500)            
 
+# test
