@@ -154,10 +154,7 @@ if __name__ == '__main__':
     #plotting_utility.plot_interpretation(player_round_6,('ef6f9322-61e6-447c-a7dc-642dc94e2ce1', 170305337) , show=False, max_tvd=100)
     
     
-    
-# adding a comment
-
-# plotting the well trajectories for all players    
+# plotting the well trajectories for all players, conventional    
     
     player_num_list=[]
     
@@ -165,18 +162,22 @@ if __name__ == '__main__':
         
         if i==48: continue
         #if i==19: continue
+        #if i==18: continue
         #if i==20: continue
         #if i==22: continue
         #if i==233: continue
+        #if i==275: continue
     
         player_num_list.append(i+1)
         
     cur_stage_id = id_stage_1
     
-    #vss_all=[]
-    #tvds_all=[]
+    vss_all_r2=[]
+    tvds_all_r2=[]
     
     for player_number in player_num_list:
+        
+        print(player_number)
         
         player_round_6 = get_virtual_project_id(player_number, stage_id=cur_stage_id)
         #print('virtual project id', player_round_6.virtual_proj_id)
@@ -210,13 +211,82 @@ if __name__ == '__main__':
         plt.plot(vss, tvds) 
         plt.ylim(max_tvd, 3500)
         
-        #vss_all.append(vss)
-        #tvds_all.append(tvds)
+        vss_all_r2.append(vss)
+        tvds_all_r2.append(tvds)
         
     plt.xlabel('vss')
     plt.ylabel('xtvds')
-    plt.title("Well Trajectories for all players")
+    plt.title("Well Trajectories for all players, conventional round")
     plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_all_r1.png', dpi=500)
+    
+    
+        
+
+
+# plotting the well trajectories for all players    
+    
+    player_num_list=[]
+    
+    for i in range(350):
+        
+        if i==48: continue
+        if i==19: continue
+        if i==18: continue
+        if i==20: continue
+        if i==22: continue
+        if i==233: continue
+        if i==275: continue
+    
+        player_num_list.append(i+1)
+        
+    cur_stage_id = id_stage_2
+    
+    vss_all_r2=[]
+    tvds_all_r2=[]
+    
+    for player_number in player_num_list:
+        
+        print(player_number)
+        
+        player_round_6 = get_virtual_project_id(player_number, stage_id=cur_stage_id)
+        #print('virtual project id', player_round_6.virtual_proj_id)
+        lateral_id = get_lateral(player_round_6.virtual_proj_id)
+        #print('lateral object', lateral_id)
+        revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+        #print('lateral revisions', revisions_lateral)
+        all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id, player_to_add=player_round_6)
+        # done with laterals
+
+        revisions_interp = get_all_interpetation_versions(lateral_id)
+        #print('interpretation revisions', revisions_interp)
+        all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id, player_to_add=player_round_6)
+        
+        trajectories=player_round_6.trajectories
+        traj_index_list=list(trajectories.keys())
+        traj_index_endtime=traj_index_list[len(traj_index_list)-1]
+        
+        #plotting_utility.plot_well(player_round_6, traj_index_endtime, True)
+        
+        players_well = player_round_6.trajectories[traj_index_endtime]
+        
+        points=players_well.well_points
+        
+        vss = []
+        tvds = []
+        max_tvd=2000
+        for point in points: 
+            vss.append(point.vs)
+            tvds.append(point.tvd)
+        plt.plot(vss, tvds) 
+        plt.ylim(max_tvd, 1000)
+        
+        vss_all_r2.append(vss)
+        tvds_all_r2.append(tvds)
+        
+    plt.xlabel('vss')
+    plt.ylabel('xtvds')
+    plt.title("Well Trajectories for all players, unconventional round")
+    plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_all_r2.png', dpi=300)
     
     
     
@@ -386,6 +456,91 @@ plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper
 
 
 
-# h
+  
+    
+    
+    
+    
+    
+    
+#- Correlation between variance in well trajectory and total score 
+variance=[] 
+
+for i in tvds_all:
+    
+    var=np.var(i)
+    
+    variance.append(var)
+    
+    
+plt.scatter(variance,conv_score, marker='o', c='red', linewidths=0.5, edgecolors='black')
+plt.xlabel('Variance in well trajectory')
+plt.ylabel('Total Score')
+
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/var_vs_score.png', dpi=500) 
 
 
+
+
+
+
+
+
+
+# getting the interpretation of all players at the endtime
+
+player_num_list=[]
+
+for i in range(350):
+    
+    if i==48: continue
+    #if i==19: continue
+    #if i==20: continue
+    #if i==22: continue
+    #if i==233: continue
+
+    player_num_list.append(i+1)    
+
+
+cur_stage_id = id_stage_1
+
+mds_all=[]
+tvd_shift_all=[]
+max_tvd=100
+for player_number in player_num_list:
+    
+    player_round_6 = get_virtual_project_id(player_number, stage_id=cur_stage_id)
+    lateral_id = get_lateral(player_round_6.virtual_proj_id)
+    revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+    all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id, player_to_add=player_round_6)
+    revisions_interp = get_all_interpetation_versions(lateral_id)
+    all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id, player_to_add=player_round_6)
+    
+    indexes=player.interpretation_dict.keys()
+    for ind in indexes:
+        
+        if '2021-09-15' in player.interpretation_dict[ind].timestamp:
+            
+            endtime_index=ind
+    
+    players_interpretation = player.interpretation_dict[endtime_index]
+    
+    b=players_interpretation 
+    mds = b.md_points
+    tvds = b.tvd_shifts
+    plt.plot(mds, tvds)
+    plt.xlim(0,5000)
+    plt.ylim(max_tvd, -max_tvd)
+    plt.xlabel('MD')
+    plt.ylabel('TVD shifts')
+    mds_all.append(mds)
+    tvd_shift_all.append(tvds)
+
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/interpretatio_endtime_r1.png', dpi=500) 
+    
+
+
+    
+    
+    
+  
