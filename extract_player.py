@@ -356,8 +356,8 @@ plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper
 
 # Plotting well trajectories of top 10 players=
 
-top_players=[74, 141, 38, 61, 78, 301, 143, 207, 7, 42]
-top_scores=[80.7,82.8, 76.5, 83.9, 70.9, 73.6, 74.8, 79.4, 72.3, 70.5]
+top_players=[74, 141, 61, 6, 183, 149, 148, 196, 284, 85]
+top_scores=[80.7,82.8, 83.9, 79.5, 79.7, 80.8, 87.5, 82.1, 82.5, 80.3]
 
 
 
@@ -400,7 +400,7 @@ for p in range(len(top_players)):
     plt.xlabel('vss')
     plt.ylabel('tvds')
     plt.title("Well Trajectories for top  players, conventional round")
-    plt.legend(['player number:74, score=80.7', 'player number:141, score=82.8','player number:38, score=76.5','player number:61, score=83.9','player number:78, score=70.9', 'player number:301, score=73.6', 'player number:143, score=74.8','player number:207, score=79.4','player number:7, score=72.3', 'player number:42, score=70.5',], fontsize=5, bbox_to_anchor=(0.9, 0.95))
+    plt.legend(['player number:74, score=80.7', 'player number:141, score=82.8','player number:61, score=83.9','player number:6, score=79.5','player number:183, score=79.7', 'player number:149, score=80.8', 'player number:148, score=87.5','player number:196, score=82.1','player number:284, score=82.5', 'player number:85, score=80.3',], fontsize=5, bbox_to_anchor=(0.9, 0.95))
     
     
 plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_top_r1.png', dpi=250)
@@ -516,14 +516,18 @@ for player_number in player_num_list:
     revisions_interp = get_all_interpetation_versions(lateral_id)
     all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id, player_to_add=player_round_6)
     
-    indexes=player.interpretation_dict.keys()
+    indexes=player_round_6.interpretation_dict.keys()
     for ind in indexes:
         
-        if '2021-09-15' in player.interpretation_dict[ind].timestamp:
+        if str(player_round_6.interpretation_dict[ind].timestamp)=='nan':
+            
+            continue
+        
+        if '2021-09-15' in player_round_6.interpretation_dict[ind].timestamp:
             
             endtime_index=ind
     
-    players_interpretation = player.interpretation_dict[endtime_index]
+    players_interpretation = player_round_6.interpretation_dict[endtime_index]
     
     b=players_interpretation 
     mds = b.md_points
@@ -539,6 +543,8 @@ for player_number in player_num_list:
 plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/interpretatio_endtime_r1.png', dpi=500) 
     
 
+
+# Suppose we have the true model in both round: The best player in conventional round is player number 61 and the best player in unconventional round is 
 
     
     
