@@ -22,7 +22,22 @@ region=data.Region
 
 
 # scatter plot of scores for all players in two rounds versus each other
-plt.scatter(conv_score,unconv_score,c='yellow', edgecolors='black')
+#plt.style.use('fivethirtyeight')
+
+
+
+
+plt.scatter(conv_score,unconv_score,c='gold', edgecolors='black')
+plt.annotate("R2 = {:.3f}".format(r2_score(conv_score, unconv_score)), (0.4,0.4))
+plt.xlabel('Total Score, Conventional Round', )
+plt.ylabel('Total Score, Unconventional Round', )
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/scores-2rounds.png', dpi=500, )                
+
+
+
+
+
+
 
 m, b = np.polyfit(conv_score,unconv_score, 1)
 plt.plot(conv_score, m*conv_score + b)
@@ -290,6 +305,7 @@ plt.close()
 data=pd.read_excel('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Working Folder/results_ALL_meg.xlsx', sheet_name='all_scores(RU)', header=1)
 
 conv_score=data.convscore
+rop=data.ROP
 unconv_score=data.unconvscore
 player_number=data.Player
 company=data.Company
@@ -306,3 +322,4 @@ plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper
 plt.close()
 
 
+data=pd.read_excel('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Working Folder/results_ALL_meg.xlsx', sheet_name='all_scores(RU)', header=1)
