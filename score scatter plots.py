@@ -22,16 +22,14 @@ region=data.Region
 
 
 # scatter plot of scores for all players in two rounds versus each other
-#plt.style.use('fivethirtyeight')
-
-
-
-
-plt.scatter(conv_score,unconv_score,c='gold', edgecolors='black')
-plt.annotate("R2 = {:.3f}".format(r2_score(conv_score, unconv_score)), (0.4,0.4))
-plt.xlabel('Total Score, Conventional Round', )
-plt.ylabel('Total Score, Unconventional Round', )
-plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/scores-2rounds.png', dpi=500, )                
+plt.style.use('fivethirtyeight')
+plt.scatter(conv_score,unconv_score,c='red', edgecolors='black', linewidths=(1.5))
+#.annotate("R2 = {:.3f}".format(r2_score(conv_score, unconv_score)))
+plt.ylabel('Total Score, Unconventional Round',fontsize=10  )
+plt.xlabel('Total Score, Conventional Round', fontsize=10 )
+plt.xticks(fontsize=10)
+plt.yticks(fontsize=10 )
+#plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/scores-2rounds.jpg', bbox_inches='tight', dpi=500 )                
 
 
 
@@ -119,22 +117,23 @@ num_mix=len(mixed_score_players)
 
             
             
-plt.scatter(x_high, y_high,marker='s', c='green', linewidths=0.5, edgecolors='black')
-plt.scatter(x_low, y_low,marker='*', c='red', linewidths=0.5, edgecolors='black')
-plt.scatter(x_mix, y_mix,marker='o', c='yellow', linewidths=0.5, edgecolors='black')
-plt.scatter(x_mid, y_mid,marker='v', c='blue', linewidths=0.5, edgecolors='black')
+plt.scatter(x_high, y_high,marker='P', linewidths=1, edgecolors='black', c='cyan')
+plt.scatter(x_low, y_low,marker='*', c='red', linewidths=0.5, edgecolors='black', s=100)
+plt.scatter(x_mix, y_mix,marker='o', linewidths=1, edgecolors='purple', facecolors='none')
+plt.scatter(x_mid, y_mid,marker='v',c='gold', linewidths=0.5, edgecolors='black', )
 
-plt.xlabel('Conventional Score')
-plt.ylabel('Unconventional Score')
+plt.xlabel('Conventional Score', fontsize=10 )
+plt.ylabel('Unconventional Score', fontsize=10 )
 
 plt.xlim(0,100)
 plt.ylim(0,100)
+plt.xticks(fontsize=10)
+plt.yticks(fontsize=10 )
 
-plt.legend(['Both rounds high: '+str(num_high),'Both rounds low: '+str(num_low),'Inconsistent scores: '+str(num_mix),'Both rounds middle: '+str(num_mid)], fontsize=5)        
+plt.legend(['Both rounds high: '+str(num_high),'Both rounds low: '+str(num_low),'Inconsistent scores: '+str(num_mix),'Both rounds middle: '+str(num_mid)], fontsize=7)        
 
-plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/grouping_scores.png', dpi=500)            
-plt.close()
-         
+#plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/grouping_scores.jpg',bbox_inches='tight', dpi=500)            
+       
         
 # scatter plot of scores for all players grouping based on region
 
@@ -200,16 +199,18 @@ num_north=len(northamerica_players)
 
 # All regions
 
-plt.scatter(x_europe, y_europe,marker='*', c='orchid', linewidths=0.5, edgecolors='black')
-plt.scatter(x_latin, y_latin,marker='s', c='lime', linewidths=0.5, edgecolors='black')
-plt.scatter(x_asia, y_asia,marker='o', c='yellow', linewidths=0.5, edgecolors='black')
-plt.scatter(x_north, y_north,marker='v', c='cyan', linewidths=0.5, edgecolors='black')
-plt.legend(['Europe Players: '+str(num_europe),'Latina America: '+str(num_latin),'Middle East/Asia/Africa/Oceania '+str(num_asia),'North America: '+str(num_north)], fontsize=5)        
-plt.xlabel('Conventional Score')
-plt.ylabel('Unconventional Score')
+plt.scatter(x_europe, y_europe,marker='*', c='gold', linewidths=0.5, edgecolors='black')
+plt.scatter(x_latin, y_latin,marker='P', c='green', linewidths=0.5, )
+plt.scatter(x_asia, y_asia,marker='o',c='red', linewidths=0.5, edgecolors='black', )
+plt.scatter(x_north, y_north,marker='v',c='aqua', linewidths=0.5, edgecolors='black')
+plt.legend(['Europe : '+str(num_europe),'Latina America: '+str(num_latin),'Middle East/Asia/Africa/Oceania '+str(num_asia),'North America: '+str(num_north)], fontsize=5)        
+plt.xlabel('Conventional Score', fontsize=10)
+plt.ylabel('Unconventional Score', fontsize=10)
 plt.xlim(0,100)
 plt.ylim(0,100)
-plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/grouping_scores_regions.png', dpi=500)                
+plt.xticks(fontsize=10)
+plt.yticks(fontsize=10 )
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/grouping_scores_regions.jpg',bbox_inches='tight', dpi=500)                
 
 
           
