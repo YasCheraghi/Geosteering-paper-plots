@@ -273,12 +273,12 @@ if __name__ == '__main__':
         
         vss = []
         tvds = []
-        max_tvd=2000
+        max_tvd=1420
         for point in points: 
             vss.append(point.vs)
             tvds.append(point.tvd)
         plt.plot(vss, tvds) 
-        plt.ylim(max_tvd, 1000)
+        plt.ylim(max_tvd, 1300)
         
         vss_all_r2.append(vss)
         tvds_all_r2.append(tvds)
@@ -395,15 +395,19 @@ for p in range(len(top_players)):
     for point in points: 
         vss.append(point.vs)
         tvds.append(point.tvd)
+    
+    plt.style.use('fivethirtyeight')
     plt.plot(vss, tvds) 
     plt.ylim(max_tvd, 3550)
     plt.xlabel('vss')
     plt.ylabel('tvds')
+    plt.xticks(fontsize=10)
+    plt.yticks(fontsize=10 )
     plt.title("Well Trajectories for top  players, conventional round")
     plt.legend(['player number:74, score=80.7', 'player number:141, score=82.8','player number:61, score=83.9','player number:6, score=79.5','player number:183, score=79.7', 'player number:149, score=80.8', 'player number:148, score=87.5','player number:196, score=82.1','player number:284, score=82.5', 'player number:85, score=80.3',], fontsize=5, bbox_to_anchor=(0.9, 0.95))
     
     
-plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_top_r1.png', dpi=250)
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_top_r1.png',bbox_inches='tight', dpi=250)
     
     
 # Plotting well trajectories of worst 10 players=
@@ -452,7 +456,7 @@ for p in range(len(worst_players)):
     plt.legend(['player number:63, score=27.3', 'player number:282, score=26.6','player number:118, score=26.1','player number:217, score=22.5','player number:279, score=22.3', 'player number:198, score=21.3', 'player number:229, score=27.6','player number:214, score=27.6','player number:215, score=27.6', 'player number:216, score=27.6',], fontsize=5, bbox_to_anchor=(0.7, 0.5))
     
     
-plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_low_ranked_r1.png', dpi=250)
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/well_trajectories_low_ranked_r1.png',bbox_inches='tight', dpi=250)
 
 
 
