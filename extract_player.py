@@ -709,5 +709,47 @@ plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper
 
 
    
+# interpretation of top unconventional as the true model
+
+cur_stage_id = id_stage_1
+
+
+max_tvd=150
+player_round_6 = get_virtual_project_id(78, stage_id=cur_stage_id)
+lateral_id = get_lateral(player_round_6.virtual_proj_id)
+revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id, player_to_add=player_round_6)
+revisions_interp = get_all_interpetation_versions(lateral_id)
+all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id, player_to_add=player_round_6)
+    
+indexes=player_round_6.interpretation_dict.keys()
+
+for ind in indexes:
+        
+    if str(player_round_6.interpretation_dict[ind].timestamp)=='nan':
+            
+            continue
+        
+    if '2021-09-15' in player_round_6.interpretation_dict[ind].timestamp:
+            
+            endtime_index=ind
+    
+players_interpretation = player_round_6.interpretation_dict[endtime_index]
+    
+b=players_interpretation 
+mds = b.md_points
+tvds = b.tvd_shifts
+plt.plot(mds, tvds)
+plt.xlim(0,3000)
+plt.ylim(-max_tvd, max_tvd)
+plt.xlabel('MD')
+plt.ylabel('TVD shifts')
+mds_top_r1= mds
+tvd_shift_top_r1=tvds
+
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/interpretatio_endtime_top_r2.png', dpi=500) 
+ 
+
+
     
   
