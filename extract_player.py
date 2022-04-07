@@ -131,7 +131,7 @@ def get_player_by_number_and_round_id(player_index, round_id):
 if __name__ == '__main__':
     # here is the main script
     cur_stage_id = id_stage_2
-    player_round_6 = get_virtual_project_id(350, stage_id=cur_stage_id)
+    player_round_6 = get_virtual_project_id(5, stage_id=cur_stage_id)
     print('virtual project id', player_round_6.virtual_proj_id)
     lateral_id = get_lateral(player_round_6.virtual_proj_id)
     print('lateral object', lateral_id)
@@ -358,7 +358,7 @@ plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper
 
 top_players=[74, 141, 61, 6, 183, 149, 148, 196, 284, 85]
 top_scores=[80.7,82.8, 83.9, 79.5, 79.7, 80.8, 87.5, 82.1, 82.5, 80.3]
-
+cur_stage_id = id_stage_1
 
 
 
@@ -510,9 +510,9 @@ cur_stage_id = id_stage_1
 
 mds_all=[]
 tvd_shift_all=[]
-max_tvd=100
+max_tvd=200
 for player_number in player_num_list:
-    
+    print(player_number)
     player_round_6 = get_virtual_project_id(player_number, stage_id=cur_stage_id)
     lateral_id = get_lateral(player_round_6.virtual_proj_id)
     revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
@@ -537,7 +537,7 @@ for player_number in player_num_list:
     mds = b.md_points
     tvds = b.tvd_shifts
     plt.plot(mds, tvds)
-    plt.xlim(0,5000)
+    plt.xlim(0,7000)
     plt.ylim(max_tvd, -max_tvd)
     plt.xlabel('MD')
     plt.ylabel('TVD shifts')
@@ -548,9 +548,123 @@ plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper
     
 
 
-# Suppose we have the true model in both round: The best player in conventional round is player number 61 and the best player in unconventional round is 
+
+
+# error traj r1    
+
+interpret_error=[]
+player_index=[]
+strategy=''
+error_list_all=[]
+
+for i in range(len(vss_all_r1)):  # iteration over all players
+    
+    error_list=[]
+    
+    vss_all_r1[i]=vss_all_r1[i]
+    tvds_all_r1[i]=tvds_all_r1[i]
+    
+    if len(vss_all_r1[i])==0:
+    
+        max_vss=0
+    else:
+        max_vss=vss_all_r1[i][-1]
+
+    for j in range(len(vss_top_r1)):
+        
+        vss_ref=vss_top_r1[j]
+        tvds_ref=tvds_top_r1[j]
+         
+       
+        flag='F'
+        
+        for k in range(len(vss_all_r1[i])):
+                  
+            if vss_all_r1[i][k]==vss_ref:
+                   
+                error_val=abs(tvds_ref-tvds_all_r1[i][k])
+                error_list.append(error_val)
+                flag='T'
+        
+       
+        
+        if flag=='F':
+            
+
+                if max_vss>= vss_ref:
+                
+                    strategy='interpolation'
+                
+                    # finding min & max neighbors
+                
+                    for k in range(len(vss_all_r1[i])):
+                    
+                        if vss_all_r1[i][k]<vss_ref:
+                        
+                            min_neighbor=vss_all_r1[i][k]
+                            tvd_min_neighbor=tvds_all_r1[i][k]
+                        
+                
+                    for k in range(len(vss_all_r1[i])):
+                    
+                        if vss_all_r1[i][k]>vss_ref:
+                        
+                            max_neighbor=vss_all_r1[i][k]
+                            tvd_max_neighbor=tvds_all_r1[i][k]
+                            break
+                        
+                
+                
+                    m=(tvd_max_neighbor-tvd_min_neighbor)/(max_neighbor-min_neighbor)
+                    b=tvd_max_neighbor-(m*max_neighbor)
+                
+                    tvd_pred=m*vss_ref + b
+                
+                
+                    tvd_diff=abs(tvd_pred-tvds_ref)
+                    error_list.append(tvd_diff)
+                    print('no')
+            
+                if max_vss< vss_ref:
+            
+                    strategy='previous error'
+                    if len(error_list)>=1:
+                        prev_error=error_list[-1]
+                        
+                    else:
+                        prev_error=100
+                    error_list.append(prev_error)
+                    print('yes')
+                
+    print(len(error_list))           
+    error_list_all.append(error_list)            
+    sum_error=sum(error_list)
+    interpret_error.append(sum_error)
+    player_index.append(i)
+            
+
+                
+# ploting
+
+for i in range(len(player_num_list)):
+    
+    for j in range(len(player_num_excel)):
+        
+        numm=int(player_num_excel[j][6:])
+        
+        if numm==player_num_list[i]:
+            
+            plt.scatter(interpret_error[i],inzoneunconv[j], marker='o', c='red', edgecolors='black')
 
     
-    
+
+plt.xlabel('trajectory error, R1')
+plt.ylabel(' in zone %')
+plt.xlim(0,20000)
+
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/traj_error_inzone_r1.png',bbox_inches='tight', dpi=500)
+
+
+   
     
   
