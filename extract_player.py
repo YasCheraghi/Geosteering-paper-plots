@@ -550,6 +550,49 @@ plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper
 
 
 
+
+
+
+
+
+# well trajectory for top conventional r1
+
+cur_stage_id = id_stage_1
+        
+    
+player_round_6 = get_virtual_project_id(78, stage_id=cur_stage_id)
+    #print('virtual project id', player_round_6.virtual_proj_id)
+lateral_id = get_lateral(player_round_6.virtual_proj_id)
+    #print('lateral object', lateral_id)
+revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+    #print('lateral revisions', revisions_lateral)
+all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id, player_to_add=player_round_6)
+    # done with laterals
+
+revisions_interp = get_all_interpetation_versions(lateral_id)
+    #print('interpretation revisions', revisions_interp)
+all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id, player_to_add=player_round_6)
+    
+trajectories=player_round_6.trajectories
+traj_index_list=list(trajectories.keys())
+traj_index_endtime=traj_index_list[len(traj_index_list)-1]
+    
+    #plotting_utility.plot_well(player_round_6, traj_index_endtime, True)
+    
+players_well = player_round_6.trajectories[traj_index_endtime]
+    
+points=players_well.well_points
+    
+vss = []
+tvds = []
+for point in points: 
+    vss.append(point.vs)
+    tvds.append(point.tvd)
+    
+vss_top_r1=vss
+tvds_top_r1=tvds
+    
+
 # error traj r1    
 
 interpret_error=[]
