@@ -7,6 +7,8 @@ import well_point_converter as point_converter
 import interpretation_converter
 import plotting_utility
 import matplotlib.pyplot as plt
+from sklearn.metrics import r2_score
+
 
 
 pd.set_option('display.max_columns', None) 
@@ -751,5 +753,167 @@ plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper
  
 
 
-    
+  # Calculating the interpretation error with regards to the best player- round 1
+
+
+
+  interpret_error=[]
+  player_index=[]
+  strategy=''
+  error_list_all=[]
+
+  for i in range(len(mds_all_r1)):  # iteration over all players
+      
+
+      
+
+      error_list=[]
+      
+      max_md=mds_all_r1[i][0]
+
+          
+          
+      for k in range(len(mds_all_r1[i])):
+                 
+          if mds_all_r1[i][k]>=max_md:
+                  
+              max_md=mds_all_r1[i][k]
+      
+      for j in range(len(mds_top_r1)):
+          
+          exact_val_index=0
+          md_ref=mds_top_r1[j]
+          tvd_shift_ref=tvd_shift_top_r1[j]
+          
+         
+          
+          for k in range(len(mds_all_r1[i])):
+                    
+              if mds_all_r1[i][k]==md_ref:
+                     
+                  error_val=abs(tvd_shift_ref-tvd_shift_all_r1[i][k])
+                  error_list.append(error_val)
+                  exact_val_index=1
+          
+         
+                  
+          if j==0 and exact_val_index==0:
+                      
+              error_val=abs(tvd_shift_top_r1[0]-tvd_shift_all_r1[i][0])
+              error_list.append(error_val)
+              
+              
+          if j==1 and mds_all_r1[i][1]==2900 and exact_val_index==0:
+              
+              error_val=abs(tvd_shift_top_r1[1]-tvd_shift_all_r1[i][1])
+              error_list.append(error_val)
+          
+          if j>=2 and exact_val_index==0:
+              
+              
+              if max_md>= md_ref:
+              
+                  strategy='interpolation'
+              
+                  # finding min & max neighbors
+              
+                  for k in range(len(mds_all_r1[i])):
+                  
+                      if mds_all_r1[i][k]<md_ref:
+                      
+                          min_neighbor=mds_all_r1[i][k]
+                          tvd_min_neighbor=tvd_shift_all_r1[i][k]
+                      
+              
+                  for k in range(len(mds_all_r1[i])):
+                  
+                      if mds_all_r1[i][k]>md_ref:
+                      
+                          max_neighbor=mds_all_r1[i][k]
+                          tvd_max_neighbor=tvd_shift_all_r1[i][k]
+                          break
+                      
+              
+              
+                  m=(tvd_max_neighbor-tvd_min_neighbor)/(max_neighbor-min_neighbor)
+                  b=tvd_max_neighbor-(m*max_neighbor)
+              
+                  tvd_pred=m*md_ref + b
+              
+              
+                  tvd_diff=abs(tvd_pred-tvd_shift_ref)
+                  error_list.append(tvd_diff)
+                  print('no')
+              
+              if max_md< md_ref:
+              
+                  strategy='previous error'
+                  prev_error=error_list[-1]
+                  error_list.append(prev_error)
+                  print('yes')
+                  
+      print(len(error_list))           
+      error_list_all.append(error_list)            
+      sum_error=sum(error_list)
+      interpret_error.append(sum_error)
+      player_index.append(i)
+              
+
+
+  data=pd.read_excel('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Working Folder/results_ALL_meg.xlsx', sheet_name='all_scores(RU)', header=1)
+
+  conv_score=data.convscore
+  unconv_score=data.unconvscore
+  player_num_excel=data.Player
+  inzoneconv=data.InZoneconv
+  inzoneunconv=data.inZoneunconv           
+             
+  player_list=data.Player
+  player_number=[]
+  sorted_score=[0]*349
+  sorted_inzone=[0]*349 
+  sorted_unconv_score=[0]*349
+  sorted_unconv_inzone=[0]*349       
+              
+  for i in range(len(player_list)):
+      
+      player_num=int(player_list[i][6:])
+      player_number.append(player_num)
+      
+
+#storing scores      
+              
+  for i in range(len(player_num_list)):
+      
+      
+      for j in range(len(player_number)):
+          
+          
+          if player_num_list[i]==player_number[j]:
+              
+              sorted_score[i]=conv_score[j]
+              sorted_inzone[i]=inzoneconv[j]
+              sorted_unconv_score[i]=unconv_score[j]
+              sorted_unconv_inzone[i]=inzoneunconv[j] 
+              
+
+# plotting
+
+  for i in range(len(player_num_list)):
+      
+      for j in range(len(player_num_excel)):
+          
+          numm=int(player_num_excel[j][6:])
+          
+          if numm==player_num_list[i]:
+              
+              plt.scatter(interpret_error[i],unconv_score[j], marker='o', c='red', edgecolors='black')
+
+     
+  plt.xlabel('interpret error, R1')
+  plt.ylabel(' Total Scores')
+  plt.xlim(0,2000)
+
+  plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/Geosteering Paper/Plots-paper/interpret_error_r1.png',bbox_inches='tight', dpi=500)
+  
   
