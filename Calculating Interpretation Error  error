@@ -537,7 +537,6 @@ for i in range(len(interp_vs_all_r2)):
           
         if find_equal(vss_ref,interp_vs_all_r2[i])==False:
             
-            
 
             if vss_ref<min_vs:
                 
@@ -547,7 +546,6 @@ for i in range(len(interp_vs_all_r2)):
                     error_player.append(error_val)
                     calculation_flag=True
                 
-                 
             
             if vss_ref>max_vs:
                 
@@ -557,8 +555,7 @@ for i in range(len(interp_vs_all_r2)):
                     error_player.append(error_val)
                     calculation_flag=True
             
-            
-            
+     
             
             if min_vs<vss_ref<max_vs:
                 
@@ -572,9 +569,7 @@ for i in range(len(interp_vs_all_r2)):
                 if calculation_flag==False:
                     error_player.append(error_val)
                     calculation_flag=True
-            
-            
-            
+        
             
     error_sum=np.sum(error_player)
     interp_error_r2[i]=error_sum
@@ -588,7 +583,7 @@ for i in range(len(interp_vs_all_r2)):
         
 
 #===========================================================================
-# Calculating the interpretation error in R2, Conventional Round
+# Calculating the interpretation error in R1, Conventional Round
 #===========================================================================
  
 interp_error_r1=['none']*len(player_num_list_r1)
@@ -644,9 +639,7 @@ for i in range(len(interp_vs_all_r1)):
                     error_player.append(error_val)
                     calculation_flag=True
             
-            
-            
-            
+           
             if min_vs<vss_ref<max_vs:
                 
                 left_neighbor_index=find_left_neighbor(vss_ref,interp_vs_all_r1[i])
@@ -658,10 +651,7 @@ for i in range(len(interp_vs_all_r1)):
                 if calculation_flag==False:
                     error_player.append(error_val)
                     calculation_flag=True
-            
-            
-            
-            
+         
     error_sum=np.sum(error_player)
     error_mean=np.mean(error_player)
     interp_error_r1[i]=error_sum
@@ -671,7 +661,6 @@ for i in range(len(interp_vs_all_r1)):
         print('True') 
         
     else:
-        
-        print(len(error_player))
+     print(len(error_player))
         
         
