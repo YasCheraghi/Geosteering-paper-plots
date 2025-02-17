@@ -1,0 +1,677 @@
+
+from scipy.stats import pearsonr
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# Trying to get the true model in Unconventional Round, R1
+
+# trajectory of top player
+cur_stage_id=id_stage_1
+player_round_78 = get_virtual_project_id(78, stage_id=cur_stage_id)
+print('virtual project id', player_round_78.virtual_proj_id)
+lateral_id = get_lateral(player_round_78.virtual_proj_id)
+print('lateral object', lateral_id)
+revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+print('lateral revisions', revisions_lateral)
+all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id,
+                                                player_to_add=player_round_78)
+# done with laterals
+
+revisions_interp = get_all_interpetation_versions(lateral_id)
+print('interpretation revisions', revisions_interp)
+all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id,
+                                              player_to_add=player_round_78)
+
+time_lapse = PlayerTimeLapse(player_round_78, '2021-09-15 16:00:00')
+#time_lapse.plot_time_lapse_all_in_one(show=True, save_prefix='Player #{:03d}'.format(player_number))
+
+players_well_points=time_lapse.final_trajectory.well_points
+max_point_excl=None 
+max_tvd=2000
+vss = []
+tvds = []
+final_md = None
+
+for point in players_well_points:
+    if max_point_excl is not None and len(vss) >= max_point_excl:
+        break
+    vss.append(point.vs)
+    tvds.append(point.tvd)
+    
+plt.plot(vss,tvds)
+plt.ylim(4000, 3500)
+
+#Getting the true answer
+
+answer_player = get_virtual_project_id(78, stage_id=cur_stage_id)
+lateral_id = get_lateral(answer_player.virtual_proj_id)
+print('lateral object', lateral_id)
+revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+print('lateral revisions', revisions_lateral)
+all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id, player_to_add=answer_player)
+answer_interpretations = get_all_interpetation_versions(lateral_id, interpretation_name_filter='Answer')
+print('Answer interpretation revisions', answer_interpretations)
+
+all_interpretations = get_all_interpretations(answer_interpretations, stage_id=cur_stage_id, player_to_add=answer_player)
+# plotting_utility.plot_well_and_interpretation_by_time(answer_player, '2021-09-14 16:31:54', True, max_tvd=5000)
+#plotting_utility.plot_well_and_interpretation_by_time(answer_player, '2021-09-14 19:32:44', True, max_tvd=4000)
+
+time_str='2021-09-14 19:32:44'
+show=False
+use_md=False
+max_tvd=3800
+print('looking for {}'.format(time_str))
+interp_index = None
+for i, interp_id in enumerate(answer_player.interpretation_id_list):
+    # interp = player.interpretation_id_list[i[1]]
+    interp = answer_player.interpretation_dict[interp_id]
+    print(interp.timestamp)
+    if isinstance(interp.timestamp, str) and (interp.timestamp >= time_str):
+        interp_index = i
+        traj_time_stamp = interp.timestamp
+        print(traj_time_stamp)
+        break
+if interp_index is None:
+    interp_index = i - 1
+    
+    
+plt.figure()
+my_index = answer_player.interpretation_id_list[interp_index]
+players_interpretation = answer_player.interpretation_dict[my_index]
+traj_ids = answer_player.trajectories.keys()
+time_stamp = players_interpretation.timestamp
+for i in traj_ids:
+    traj = answer_player.trajectories[i]
+    if isinstance(traj.timestamp, str) and (traj.timestamp > time_stamp or traj.timestamp == time_stamp):
+        traj_time_stamp = traj.timestamp
+        print(traj_time_stamp)
+        break
+    
+players_well_points=time_lapse.final_trajectory.well_points
+
+mds = []
+vss = []
+tvds = []
+for point in players_well_points:
+    mds.append(point.md)
+    vss.append(point.vs)
+    tvds.append(point.tvd)
+
+# plotting the well
+if use_md:
+    plt.plot(mds, tvds)
+    
+else:
+    plt.plot(vss, tvds)
+    
+final_md=plot_well_raw(players_well_points, max_point_excl=None, show=False, max_tvd=2000)
+if final_md is not None:
+    players_interpretation.md_points[-1]= final_md
+    
+interp_vss = convert_mds_to_vss(players_interpretation.md_points, mds, vss)
+
+interp_tvd_sshifts = np.array(players_interpretation.tvd_shifts)
+tvds_horizons_r1=[]
+vss_horizons_r1=interp_vss
+true_interp_tvd_shifts_r1=np.array(players_interpretation.tvd_shifts)
+
+for depth in players_interpretation.horizon_depths:
+    interp_tvds = depth + interp_tvd_sshifts
+    tvds_horizons_r1.append(interp_tvds)
+    if use_md:
+        plt.plot(np.array(players_interpretation.md_points), interp_tvds)
+        
+    else:
+        plt.plot(interp_vss, interp_tvds)
+        
+
+plt.ylim(max_tvd, 3500)
+plt.xlabel('VS', fontsize=10)
+plt.ylabel('TVD', fontsize=10)
+plt.show()
+
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/new-GWC-codes/Plots/true_model_r1.png', bbox_inches='tight', dpi=1000)
+# plt.plot()
+if show:
+    plt.show()
+    
+#=================================================================================================
+
+# Getting the coordinates of upper and lower target layer by comaring the trajectory of best player and the horizons
+
+true_upper_tvds_r1=tvds_horizons_r1[3]
+true_lower_tvds_r1=tvds_horizons_r1[5]
+
+#================================================================================================
+
+# Trying to get the true model in Conventional Round, R2
+
+cur_stage_id=id_stage_2
+player_round_78 = get_virtual_project_id(148, stage_id=cur_stage_id)
+print('virtual project id', player_round_78.virtual_proj_id)
+lateral_id = get_lateral(player_round_78.virtual_proj_id)
+print('lateral object', lateral_id)
+revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+print('lateral revisions', revisions_lateral)
+all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id,
+                                                player_to_add=player_round_78)
+# done with laterals
+
+revisions_interp = get_all_interpetation_versions(lateral_id)
+print('interpretation revisions', revisions_interp)
+all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id,
+                                              player_to_add=player_round_78)
+
+time_lapse = PlayerTimeLapse(player_round_78, '2021-09-15 16:00:00')
+#time_lapse.plot_time_lapse_all_in_one(show=True, save_prefix='Player #{:03d}'.format(player_number))
+
+players_well_points=time_lapse.final_trajectory.well_points
+
+answer_player = get_virtual_project_id(148, stage_id=cur_stage_id)
+lateral_id = get_lateral(answer_player.virtual_proj_id)
+print('lateral object', lateral_id)
+revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+print('lateral revisions', revisions_lateral)
+all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id, player_to_add=answer_player)
+answer_interpretations = get_all_interpetation_versions(lateral_id, interpretation_name_filter='Answer')
+print('Answer interpretation revisions', answer_interpretations)
+
+all_interpretations = get_all_interpretations(answer_interpretations, stage_id=cur_stage_id, player_to_add=answer_player)
+# plotting_utility.plot_well_and_interpretation_by_time(answer_player, '2021-09-14 16:31:54', True, max_tvd=5000)
+#plotting_utility.plot_well_and_interpretation_by_time(answer_player, '2021-09-14 19:32:44', True, max_tvd=4000)
+
+time_str='2021-09-14 19:32:44'
+show=False
+use_md=False
+max_tvd=1400
+print('looking for {}'.format(time_str))
+interp_index = None
+for i, interp_id in enumerate(answer_player.interpretation_id_list):
+    # interp = player.interpretation_id_list[i[1]]
+    interp = answer_player.interpretation_dict[interp_id]
+    print(interp.timestamp)
+    if isinstance(interp.timestamp, str) and (interp.timestamp >= time_str):
+        interp_index = i
+        traj_time_stamp = interp.timestamp
+        print(traj_time_stamp)
+        break
+if interp_index is None:
+    interp_index = i - 1
+    
+    
+my_index = answer_player.interpretation_id_list[interp_index]
+players_interpretation = answer_player.interpretation_dict[my_index]
+traj_ids = answer_player.trajectories.keys()
+time_stamp = players_interpretation.timestamp
+for i in traj_ids:
+    traj = answer_player.trajectories[i]
+    if isinstance(traj.timestamp, str) and (traj.timestamp > time_stamp or traj.timestamp == time_stamp):
+        traj_time_stamp = traj.timestamp
+        print(traj_time_stamp)
+        break
+players_well_points=time_lapse.final_trajectory.well_points
+mds = []
+vss = []
+tvds = []
+for point in players_well_points:
+    mds.append(point.md)
+    vss.append(point.vs)
+    tvds.append(point.tvd)
+
+# plotting the well
+if use_md:
+    plt.plot(mds, tvds)
+else:
+    plt.plot(vss, tvds)
+
+final_md=plot_well_raw(players_well_points, max_point_excl=None, show=False, max_tvd=2000)
+if final_md is not None:
+    players_interpretation.md_points[-1]= final_md
+    
+interp_vss = convert_mds_to_vss(players_interpretation.md_points, mds, vss)
+interp_tvd_sshifts = np.array(players_interpretation.tvd_shifts)
+tvds_horizons_r2=[]
+vss_horizons_r2=interp_vss 
+true_interp_tvd_shifts_r2=np.array(players_interpretation.tvd_shifts)
+for depth in players_interpretation.horizon_depths:
+    interp_tvds = depth + interp_tvd_sshifts
+    tvds_horizons_r2.append(interp_tvds)
+    if use_md:
+        plt.plot(np.array(players_interpretation.md_points), interp_tvds)
+    else:
+        plt.plot(interp_vss, interp_tvds)
+
+plt.ylim(max_tvd, 1355)
+plt.xlabel('VS', fontsize=10)
+plt.ylabel('TVD', fontsize=10)
+
+plt.savefig('//fil031.uis.no/emp05/2925376/Desktop/new-GWC-codes/Plots/true_model_r2.png', bbox_inches='tight', dpi=1000)
+
+#=================================================================================================
+
+# Getting the coordinates of upper and lower target layer by comaring the trajectory of best player and the horizons
+
+true_upper_tvds_r2=tvds_horizons_r2[1]
+true_lower_tvds_r2=tvds_horizons_r2[7] 
+#================================================================================================
+
+# Getting the interpretations of all players, Unconventional, R1, tvd shifts (vs)
+
+interp_vs_all_r1=[]
+interp_tvd_shifts_all_r1=[]
+interp_tvd_all_r1=[]
+player_num_list_r1=[]
+cur_stage_id=id_stage_1 
+
+
+for player_number in range(1,351):
+    
+    if player_number==49: continue # some data are missing for this player
+    
+    print(player_number)
+    player_num_list_r1.append(player_number)
+    player_round_78 = get_virtual_project_id(player_number, stage_id=cur_stage_id)
+    print('virtual project id', player_round_78.virtual_proj_id)
+    lateral_id = get_lateral(player_round_78.virtual_proj_id)
+    print('lateral object', lateral_id)
+    revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+    print('lateral revisions', revisions_lateral)
+    all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id,
+                                                    player_to_add=player_round_78)
+    
+    revisions_interp = get_all_interpetation_versions(lateral_id)
+    print('interpretation revisions', revisions_interp)
+    all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id,
+                                                  player_to_add=player_round_78)
+    
+    time_lapse = PlayerTimeLapse(player_round_78, '2021-09-15 16:00:00')
+    
+    players_well_points=time_lapse.final_trajectory.well_points
+    
+    mds = []
+    vss = []
+    tvds = []
+    for point in players_well_points:
+        mds.append(point.md)
+        vss.append(point.vs)
+        tvds.append(point.tvd)
+    
+    
+    final_interp=time_lapse.interpretations_time_lapse[-1]
+    interp_mds=final_interp.md_points
+    interp_tvd_shifts=np.array(final_interp.tvd_shifts)
+    
+    # Getting the final md
+    
+    final_md=plot_well_raw(players_well_points, max_point_excl=None, show=False, max_tvd=2000)
+    if final_md is not None:
+        interp_mds[-1]= final_md
+    
+    # Converting the tvd_shifts to vs scale
+    interp_vss= convert_mds_to_vss(interp_mds, mds, vss)
+    
+    tvds_horizons_r1=[]
+    vss_horizons_r1=interp_vss
+
+    for depth in final_interp.horizon_depths:
+        interp_tvds = depth + interp_tvd_shifts
+        tvds_horizons_r1.append(interp_tvds)
+    
+    # Storing data
+    
+    interp_vs_all_r1.append(interp_vss)
+    interp_tvd_shifts_all_r1.append(interp_tvd_shifts)
+    interp_tvd_all_r1.append(tvds_horizons_r1)
+    
+    
+    
+    
+interp_tvd_all_r1_up=[]
+
+
+for i in range(len(interp_tvd_all_r1)):
+    
+    interp_tvds=interp_tvd_all_r1[i][3]
+    interp_tvd_all_r1_up.append(interp_tvds)
+    
+    
+#================================================================================================
+
+# Getting the interpretations of all players, Conventional, R2, tvd shifts (vs)
+
+interp_vs_all_r2=[]
+interp_tvd_shifts_all_r2=[]
+interp_tvd_all_r2=[]
+player_num_list_r2=[]
+cur_stage_id=id_stage_2
+
+for player_number in range(1,351):
+    
+    if player_number==19: continue   # Ignoring this player (no well data)
+    if player_number==23: continue   # Ignoring this player (no well data)
+    if player_number==234: continue  # Ignoring this player (no well data)
+    if player_number==276: continue  # Ignoring this player (no well data)
+    
+    print(player_number)
+    player_num_list_r2.append(player_number)
+    player_round_78 = get_virtual_project_id(player_number, stage_id=cur_stage_id)
+    print('virtual project id', player_round_78.virtual_proj_id)
+    lateral_id = get_lateral(player_round_78.virtual_proj_id)
+    print('lateral object', lateral_id)
+    revisions_lateral = get_all_lateral_trajectory_versions(lateral_id)
+    print('lateral revisions', revisions_lateral)
+    all_trajectories = get_all_lateral_trajectories(revisions_lateral, stage_id=cur_stage_id,
+                                                    player_to_add=player_round_78)  
+    
+    revisions_interp = get_all_interpetation_versions(lateral_id)
+    print('interpretation revisions', revisions_interp)
+    all_interpretations = get_all_interpretations(revisions_interp, stage_id=cur_stage_id,
+                                                  player_to_add=player_round_78)
+    
+    time_lapse = PlayerTimeLapse(player_round_78, '2021-09-15 16:00:00')
+    
+    players_well_points=time_lapse.final_trajectory.well_points
+    
+    mds = []
+    vss = []
+    tvds = []
+    for point in players_well_points:
+        mds.append(point.md)
+        vss.append(point.vs)
+        tvds.append(point.tvd)
+    
+    
+    final_interp=time_lapse.interpretations_time_lapse[-1]
+    interp_mds=final_interp.md_points
+    interp_tvd_shifts=np.array(final_interp.tvd_shifts)
+    
+    # Getting the final md
+    
+    final_md=plot_well_raw(players_well_points, max_point_excl=None, show=False, max_tvd=2000)
+    if final_md is not None:
+        interp_mds[-1]= final_md
+    
+    # Converting the tvd_shifts to vs scale
+    interp_vss= convert_mds_to_vss(interp_mds, mds, vss)
+
+    tvds_horizons_r2=[]
+    vss_horizons_r2=interp_vss
+
+    for depth in final_interp.horizon_depths:
+        interp_tvds = depth + interp_tvd_shifts
+        tvds_horizons_r2.append(interp_tvds)
+
+    
+    
+    # Storing data
+    
+    interp_vs_all_r2.append(interp_vss)
+    interp_tvd_shifts_all_r2.append(interp_tvd_shifts) 
+    interp_tvd_all_r2.append(tvds_horizons_r2)
+
+
+
+#============================================================================================================
+# Calculating the interpretation error
+#============================================================================================================
+
+# Defining some helping functions...
+
+
+def find_equal(x,y):
+    flag=False
+     
+    for j in range(len(y)):
+            
+        if x==y[j]:
+                
+            
+            flag=True
+                       
+    return flag
+
+
+# in the condition that the number is greater than the min and smaller than the max
+
+def find_left_neighbor(x,y):
+    
+    left_neighbor=y[0]
+    
+    for i in range(len(y)):
+        
+        if y[i]>=left_neighbor and y[i]<x:
+            
+            left_neighbor=y[i]
+            left_neighbor_index=i
+            
+            
+    return(left_neighbor_index)
+            
+            
+def find_right_neighbor(x,y):
+    
+    right_neighbor=y[-1]
+
+    for i in range(len(y)):
+        
+        if y[i]> x:
+            
+            right_neighbor=y[i]
+            right_neighbor_index=i
+            
+            break
+            
+            
+    return(right_neighbor_index)
+                
+
+def interpolate(x,y,y_val,left_neighbor_index,right_neighbor_index):
+    
+    slope=(y_val[right_neighbor_index]-y_val[left_neighbor_index])/(y[right_neighbor_index]-y[left_neighbor_index])
+    b=y_val[right_neighbor_index]-slope*y[right_neighbor_index]
+    
+    x_val=slope*x+b
+    
+    return x_val
+  
+    
+#  If the number was smaller than the minimum, finding the corresponding tvd shift from extrapolation 
+
+
+def extrapolate_left(x,vect,vect_val):
+    
+    slope=(vect_val[1]-vect_val[0])/(vect[1]-vect[0])
+    b=vect_val[1]-slope*vect[1]
+    
+    x_val=slope*x+b
+    
+    return x_val
+      
+
+def extrapolate_right(x,vect,vect_val):
+    
+    slope=(vect_val[-1]-vect_val[-2])/(vect[-1]-vect[-2])
+    b=vect_val[-1]-slope*vect[-1]
+    
+    x_val=slope*x+b
+    
+    return x_val
+    
+
+
+#===========================================================================
+# Calculating the interpretation error in R2, Conventional Round
+#===========================================================================
+        
+    
+interp_error_r2=['none']*len(player_num_list_r2)
+
+for i in range(len(interp_vs_all_r2)):
+    error_player=[]
+        
+    min_vs=interp_vs_all_r2[i][0]
+    max_vs=interp_vs_all_r2[i][-1]
+    
+    for j in range(len(vss_horizons_r2)):
+        
+        vss_ref=vss_horizons_r2[j]
+        tvd_shift_ref=true_interp_tvd_shifts_r2[j]
+        calculation_flag=False
+        
+        if find_equal(vss_ref,interp_vs_all_r2[i])==True:
+            
+            
+            for k in range(len(interp_vs_all_r2[i])):
+                    
+                if vss_ref==interp_vs_all_r2[i][k]:
+                        
+                    equal_index=k
+            
+            error_val=abs(tvd_shift_ref-interp_tvd_shifts_all_r2[i][equal_index])
+            if calculation_flag==False:
+                error_player.append(error_val)
+                calculation_flag=True
+            
+            
+          
+        if find_equal(vss_ref,interp_vs_all_r2[i])==False:
+            
+            
+
+            if vss_ref<min_vs:
+                
+                extrapolated_tvd_shift=extrapolate_left(vss_ref,interp_vs_all_r2[i],interp_tvd_shifts_all_r2[i])     
+                error_val=abs(tvd_shift_ref-extrapolated_tvd_shift)
+                if calculation_flag==False:
+                    error_player.append(error_val)
+                    calculation_flag=True
+                
+                 
+            
+            if vss_ref>max_vs:
+                
+                extrapolated_tvd_shift=extrapolate_right(vss_ref,interp_vs_all_r2[i],interp_tvd_shifts_all_r2[i])     
+                error_val=abs(tvd_shift_ref-extrapolated_tvd_shift)
+                if calculation_flag==False:
+                    error_player.append(error_val)
+                    calculation_flag=True
+            
+            
+            
+            
+            if min_vs<vss_ref<max_vs:
+                
+                left_neighbor_index=find_left_neighbor(vss_ref,interp_vs_all_r2[i])
+                right_neighbor_index=find_right_neighbor(vss_ref,interp_vs_all_r2[i])
+                
+                interpolated_tvd_shift=interpolate(vss_ref,interp_vs_all_r2[i],interp_tvd_shifts_all_r2[i],left_neighbor_index,right_neighbor_index)
+               
+                
+                error_val=abs(tvd_shift_ref-interpolated_tvd_shift)
+                if calculation_flag==False:
+                    error_player.append(error_val)
+                    calculation_flag=True
+            
+            
+            
+            
+    error_sum=np.sum(error_player)
+    interp_error_r2[i]=error_sum
+    if len(error_player)==14:
+        print('True') 
+        
+    else:
+        
+        print(len(error_player))
+            
+        
+
+#===========================================================================
+# Calculating the interpretation error in R2, Conventional Round
+#===========================================================================
+ 
+interp_error_r1=['none']*len(player_num_list_r1)
+interp_error_r1_mean=['none']*len(player_num_list_r1)
+
+for i in range(len(interp_vs_all_r1)):
+    error_player=[]
+        
+    min_vs=interp_vs_all_r1[i][0]
+    max_vs=interp_vs_all_r1[i][-1]
+    
+    for j in range(len(vss_horizons_r1)):
+        
+        vss_ref=vss_horizons_r1[j]
+        tvd_shift_ref=true_interp_tvd_shifts_r1[j]
+        calculation_flag=False
+        
+        if find_equal(vss_ref,interp_vs_all_r1[i])==True:
+            
+            
+            for k in range(len(interp_vs_all_r1[i])):
+                    
+                if vss_ref==interp_vs_all_r1[i][k]:
+                        
+                    equal_index=k
+            
+            error_val=abs(tvd_shift_ref-interp_tvd_shifts_all_r1[i][equal_index])
+            if calculation_flag==False:
+                error_player.append(error_val)
+                calculation_flag=True
+            
+            
+          
+        if find_equal(vss_ref,interp_vs_all_r1[i])==False:
+            
+            
+
+            if vss_ref<min_vs:
+                
+                extrapolated_tvd_shift=extrapolate_left(vss_ref,interp_vs_all_r1[i],interp_tvd_shifts_all_r1[i])     
+                error_val=abs(tvd_shift_ref-extrapolated_tvd_shift)
+                if calculation_flag==False:
+                    error_player.append(error_val)
+                    calculation_flag=True
+                
+                 
+            
+            if vss_ref>max_vs:
+                
+                extrapolated_tvd_shift=extrapolate_right(vss_ref,interp_vs_all_r1[i],interp_tvd_shifts_all_r1[i])     
+                error_val=abs(tvd_shift_ref-extrapolated_tvd_shift)
+                if calculation_flag==False:
+                    error_player.append(error_val)
+                    calculation_flag=True
+            
+            
+            
+            
+            if min_vs<vss_ref<max_vs:
+                
+                left_neighbor_index=find_left_neighbor(vss_ref,interp_vs_all_r1[i])
+                right_neighbor_index=find_right_neighbor(vss_ref,interp_vs_all_r1[i])
+                
+                interpolated_tvd_shift=interpolate(vss_ref,interp_vs_all_r1[i],interp_tvd_shifts_all_r1[i],left_neighbor_index,right_neighbor_index)
+               
+                error_val=abs(tvd_shift_ref-interpolated_tvd_shift)
+                if calculation_flag==False:
+                    error_player.append(error_val)
+                    calculation_flag=True
+            
+            
+            
+            
+    error_sum=np.sum(error_player)
+    error_mean=np.mean(error_player)
+    interp_error_r1[i]=error_sum
+    interp_error_r1_mean[i]=error_mean
+    
+    if len(error_player)==28:
+        print('True') 
+        
+    else:
+        
+        print(len(error_player))
+        
+        
