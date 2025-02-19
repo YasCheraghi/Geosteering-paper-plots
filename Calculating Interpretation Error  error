@@ -11,51 +11,6 @@ import pandas as pd
 import numpy as np
 
 
-
-#  Defining a function to find the most recent interpretation
-
-def find_relevant_interp(well_point_vs , time_lapse):
-    
-    interpretations_time_lapse=time_lapse.interpretations_time_lapse
-    
-    
-    
-    relevant_interp_found=False
-    
-    if md > start_md and relevant_interp_found==False:
-        
-        most_recent_interp_md=0
-        
-        for i in interpretations_time_lapse:
-            
-            interp_md_points=i.md_points
-              
-            for j in range(len(interp_md_points)):
-                
-                if not relevant_interp_found:
-                
-                    if interp_md_points[j] < md:
-                                            
-                        most_recent_interp_md=interp_md_points[j]
-                        
-                    elif interp_md_points[j] >= md:
-                                            
-                      relevant_interp_found=True
-                      
-                      #print ("Yes")
-                      relevant_interp_tvd_shifts = i.tvd_shifts[0:j]
-                      relevant_interp_md = most_recent_interp_md
-                      break 
-                  
-            if relevant_interp_found:  
-                break
-                      
-
-        return relevant_interp_md, relevant_interp_tvd_shifts 
-            
-            
-
-
 # Getting the Well Points 
 
 well_point_data_r1={ player: {}  for player in range(1, 351)}
