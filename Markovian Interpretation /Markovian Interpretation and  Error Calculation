@@ -1,0 +1,395 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb 18 17:38:44 2025
+
+@author: 2925376
+"""
+
+import json
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+#=================================================================================================================================
+# 
+# UNonvenstional Round
+#
+#=================================================================================================================================
+
+# Getting the Well Points 
+
+well_point_data_r1={ player: {}  for player in range(1, 351)}
+markovian_interp_r1={player:[] for player in range(1,351)}
+
+
+# Define the base directory path
+base_path = "C:/Users/2925376/OneDrive - Universitetet i Stavanger/PhD/Geosteering Codes/data-with-activity-indicator/data/round1/json/"
+
+# Loop through all files from Player #001.json to Player #350.json
+for i in range(1, 351):
+    
+    if i==49:
+        continue
+    
+    md_points=[]
+    tvd_points=[]
+    vs_points=[]
+    
+    file_name = f"Player #{i:03}.json"  # Format number as three digits, e.g., Player #001.json
+    file_path = f"{base_path}{file_name}"  # Construct full file path
+    
+
+    with open(file_path, "r") as file:
+        data = json.load(file)  # Load JSON file into a Python dictionary
+        
+        well_data=data["final_trajectory"]["well_points"]
+        
+        for j in well_data:
+            
+            md_points.append(j["md"])
+            tvd_points.append(j["tvd"])
+            vs_points.append(j["vs"])
+            
+        
+            
+        well_point_data_r1[i]["MD"]= md_points
+        well_point_data_r1[i]["TVD"]= tvd_points
+        well_point_data_r1[i]["VS"]= vs_points
+        
+            
+        time_lapse = data["interpretation_time_lapse"]
+        md_data_frames = []
+        for interp in time_lapse:
+            csv_file = interp["csv_file_name"]
+            # convert the file name from relative
+            # ../ interpretations_csv / Player  # 061_round_1_step_0.csv
+            # to relative to
+            # gwc-2021-scripts/data/round1/
+            csv_file = 'data-with-activity-indicator/data/round1/' + csv_file.split('/')[-2] + '/' + csv_file.split('/')[-1]
+            # read csv data with pandas
+            df = pd.read_csv(csv_file)
+            md_data_frames.append(df)
+
+
+    markovian_interp_r1[i]=md_data_frames
+
+
+
+
+relevant_interp_r1={player:{} for player in range(1,351)}
+
+
+for player in well_point_data_r1.keys():
+    
+    
+    if player==49: continue             # missing data for this player
+    
+    relevant_interp_vs_list=[]
+    relevant_interp_tvd_list=[]
+    
+    
+    player_vs_data=well_point_data_r1[player]["VS"]
+    
+    for well_vs in player_vs_data:
+        
+        relevant_interp_found=False
+        relevant_interp_vs=0
+        
+        if well_vs > 0:
+            
+            
+            for interp_dataframe in markovian_interp_r1[player]:
+                
+                interp_vs_points=interp_dataframe["VS"]
+                  
+                for index in range(len(interp_vs_points)):
+                    
+                    if not relevant_interp_found:
+                    
+                        if relevant_interp_vs < interp_vs_points[index] < well_vs:    
+                                                
+                            relevant_interp_vs=interp_vs_points[index]
+                            
+                        elif interp_vs_points[index] >= well_vs:
+                                                
+                          relevant_interp_found=True
+                          
+                          
+                          relevant_interp_tvd_shifts = interp_dataframe["TVD"][index]
+                          
+                          
+                          break 
+                      
+                if relevant_interp_found:  
+                    break
+                
+                
+            relevant_interp_vs_list.append(relevant_interp_vs)
+            relevant_interp_tvd_list.append(relevant_interp_tvd_shifts)               
+       
+            
+       
+        
+    relevant_interp_r1[player]["VS"] = relevant_interp_vs_list
+    relevant_interp_r1[player]["TVD_shift"] = relevant_interp_tvd_list
+        
+        
+        
+    
+interp_vs_answer_r1=[]
+interp_tvd_shifts_answer_r1=[]   
+    
+# Getting the answer
+
+
+answer_file_csv = 'data-with-activity-indicator/data/round1/interpretations_csv/answer_round_1.csv'
+with open(answer_file_csv, 'r') as f:
+    data = pd.read_csv(f)
+    interp_vs_answer_r1=list(data['VS'])
+    interp_tvd_shifts_answer_r1=list(data['TVD'])
+    
+
+
+
+
+# Function to calculate error using interpolation in both 
+
+def compute_interpolation_error(interp_vs_answer_r1, interp_tvd_shifts_answer_r1, vs_player, tvd_shift_player, step=100):
+    
+    
+    
+    min_vs = max(min(interp_vs_answer_r1), min(vs_player)) 
+    
+    max_vs = min(max(interp_vs_answer_r1), max(vs_player))  
+    
+    interp_vs = np.arange(min_vs, max_vs + step, step)
+    
+    interp_tvd_true = np.interp(interp_vs, interp_vs_answer_r1, interp_tvd_shifts_answer_r1)
+    
+    interp_tvd_player = np.interp(interp_vs, vs_player, tvd_shift_player)
+    
+    interp_error = np.abs(interp_tvd_true - interp_tvd_player)
+
+    return interp_error
+
+
+
+
+interp_error_r1={player:[] for player in relevant_interp_r1.keys() }
+
+for player in relevant_interp_r1.keys():
+    
+    if player==49: continue
+
+  
+    player_vs = relevant_interp_r1[player]["VS"]
+    player_tvd_shift = relevant_interp_r1[player]["TVD_shift"]
+    
+    
+    error= compute_interpolation_error (interp_vs_answer_r1, interp_tvd_shifts_answer_r1, player_vs, player_tvd_shift, step=200)
+    mean_error=np.mean(error)
+    sqrt_mean_error=np.sqrt(mean_error)
+    interp_error_r1[player]=sqrt_mean_error
+
+
+
+
+
+
+#=================================================================================================================================
+# 
+# Convenstional Round
+#
+#=================================================================================================================================
+
+
+# Getting the Well Points 
+
+well_point_data_r2={ player: {}  for player in range(1, 351)}
+markovian_interp_r2={player:[] for player in range(1,351)}
+
+
+# Define the base directory path
+base_path = "C:/Users/2925376/OneDrive - Universitetet i Stavanger/PhD/Geosteering Codes/data-with-activity-indicator/data/round2/json/"
+
+# Loop through all files from Player #001.json to Player #350.json
+for i in range(1, 351):
+    
+    if i==19: continue   # Ignoring this player (no well data)
+    if i==23: continue   # Ignoring this player (no well data)
+    if i==234: continue  # Ignoring this player (no well data)
+    if i==276: continue  # Ignoring this player (no well data)
+
+    
+    md_points=[]
+    tvd_points=[]
+    vs_points=[]
+    
+    file_name = f"Player #{i:03}.json"  # Format number as three digits, e.g., Player #001.json
+    file_path = f"{base_path}{file_name}"  # Construct full file path
+    
+
+    with open(file_path, "r") as file:
+        data = json.load(file)  # Load JSON file into a Python dictionary
+        
+        well_data=data["final_trajectory"]["well_points"]
+        
+        for j in well_data:
+            
+            md_points.append(j["md"])
+            tvd_points.append(j["tvd"])
+            vs_points.append(j["vs"])
+            
+        
+            
+        well_point_data_r2[i]["MD"]= md_points
+        well_point_data_r2[i]["TVD"]= tvd_points
+        well_point_data_r2[i]["VS"]= vs_points
+        
+            
+        time_lapse = data["interpretation_time_lapse"]
+        md_data_frames = []
+        for interp in time_lapse:
+            csv_file = interp["csv_file_name"]
+            # convert the file name from relative
+            # ../ interpretations_csv / Player  # 061_round_1_step_0.csv
+            # to relative to
+            # gwc-2021-scripts/data/round1/
+            csv_file = 'data-with-activity-indicator/data/round2/' + csv_file.split('/')[-2] + '/' + csv_file.split('/')[-1]
+            # read csv data with pandas
+            df = pd.read_csv(csv_file)
+            md_data_frames.append(df)
+
+
+    markovian_interp_r2[i]=md_data_frames
+
+
+
+
+relevant_interp_r2={player:{} for player in range(1,351)}
+
+
+for player in well_point_data_r2.keys():
+    
+    
+    if player==19: continue   # Ignoring this player (no well data)
+    if player==23: continue   # Ignoring this player (no well data)
+    if player==234: continue  # Ignoring this player (no well data)
+    if player==276: continue  # Ignoring this player (no well data)
+
+   
+    
+    relevant_interp_vs_list=[]
+    relevant_interp_tvd_list=[]
+    
+    
+    player_vs_data=well_point_data_r2[player]["VS"]
+    
+    for well_vs in player_vs_data:
+        
+        relevant_interp_found=False
+        relevant_interp_vs=0
+        
+        if well_vs > 0:
+            
+            
+            for interp_dataframe in markovian_interp_r2[player]:
+                
+                interp_vs_points=interp_dataframe["VS"]
+                  
+                for index in range(len(interp_vs_points)):
+                    
+                    if not relevant_interp_found:
+                    
+                        if relevant_interp_vs < interp_vs_points[index] < well_vs:    
+                                                    
+                            relevant_interp_vs=interp_vs_points[index]
+                            
+                        elif interp_vs_points[index] >= well_vs:
+                                                    
+                          relevant_interp_found=True
+                          
+                          
+                          relevant_interp_tvd_shifts = interp_dataframe["TVD"][index]
+                          
+                          
+                          break 
+                      
+                if relevant_interp_found:  
+                    break
+                
+                
+            relevant_interp_vs_list.append(relevant_interp_vs)
+            relevant_interp_tvd_list.append(relevant_interp_tvd_shifts)               
+       
+            
+       
+        
+    relevant_interp_r2[player]["VS"] = relevant_interp_vs_list
+    relevant_interp_r2[player]["TVD_shift"] = relevant_interp_tvd_list
+        
+        
+        
+    
+interp_vs_answer_r2=[]
+interp_tvd_shifts_answer_r2=[]   
+    
+# Getting the answer
+
+
+answer_file_csv = 'data-with-activity-indicator/data/round2/interpretations_csv/answer_round_2.csv'
+with open(answer_file_csv, 'r') as f:
+    data = pd.read_csv(f)
+    interp_vs_answer_r2=list(data['VS'])
+    interp_tvd_shifts_answer_r2=list(data['TVD'])
+    
+
+
+
+
+# Function to calculate error using interpolation in both 
+
+def compute_interpolation_error(interp_vs_answer_r2, interp_tvd_shifts_answer_r2, vs_player, tvd_shift_player, step=100):
+    
+    
+    
+    min_vs = max(min(interp_vs_answer_r2), min(vs_player)) 
+    
+    max_vs = min(max(interp_vs_answer_r2), max(vs_player))  
+    
+    interp_vs = np.arange(min_vs, max_vs + step, step)
+    
+    interp_tvd_true = np.interp(interp_vs, interp_vs_answer_r2, interp_tvd_shifts_answer_r2)
+    
+    interp_tvd_player = np.interp(interp_vs, vs_player, tvd_shift_player)
+    
+    interp_error = np.abs(interp_tvd_true - interp_tvd_player)
+
+    return interp_error
+
+
+
+
+interp_error_r2={player:[] for player in relevant_interp_r2.keys() }
+
+for player in relevant_interp_r2.keys():
+    
+    if player==19: continue   # Ignoring this player (no well data)
+    if player==23: continue   # Ignoring this player (no well data)
+    if player==234: continue  # Ignoring this player (no well data)
+    if player==276: continue  # Ignoring this player (no well data)
+
+  
+    player_vs = relevant_interp_r2[player]["VS"]
+    player_tvd_shift = relevant_interp_r2[player]["TVD_shift"]
+    
+    
+    error= compute_interpolation_error (interp_vs_answer_r2, interp_tvd_shifts_answer_r2, player_vs, player_tvd_shift, step=200)
+    mean_error=np.mean(error)
+    sqrt_mean_error=np.sqrt(mean_error)
+    interp_error_r2[player]=sqrt_mean_error
+
+
+
+
+
